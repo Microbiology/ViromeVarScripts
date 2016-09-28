@@ -52,7 +52,8 @@ perl ~/git/Club_Grice/scripts/ghanni/analysis-perl/HumanVirome02/CalculatePnPsRa
 	${HpvContigs} \
 	${VcfFiles} \
 	./${Output}/PnPsResults/HpvOverallContigPressure.tsv \
-	./${Output}/PnPsResults/HpvSnpPatterns.tsv
+	./${Output}/PnPsResults/HpvSnpPatterns.tsv \
+	./${Output}/PnPsResults/HpvSnpPatternsSecond.tsv
 
 # Prop Phage
 perl ~/git/Club_Grice/scripts/ghanni/analysis-perl/HumanVirome02/CalculatePnPsRatio.pl \
@@ -60,7 +61,8 @@ perl ~/git/Club_Grice/scripts/ghanni/analysis-perl/HumanVirome02/CalculatePnPsRa
 	${PropPhageContigs} \
 	${VcfFiles} \
 	./${Output}/PnPsResults/PropPhageOverallContigPressure.tsv \
-	./${Output}/PnPsResults/PropPhageSnpPatterns.tsv
+	./${Output}/PnPsResults/PropPhageSnpPatterns.tsv \
+	./${Output}/PnPsResults/PropPhageSnpPatternsSecond.tsv
 
 # Staph Phage
 perl ~/git/Club_Grice/scripts/ghanni/analysis-perl/HumanVirome02/CalculatePnPsRatio.pl \
@@ -68,5 +70,6 @@ perl ~/git/Club_Grice/scripts/ghanni/analysis-perl/HumanVirome02/CalculatePnPsRa
 	${StaphPhageContigs} \
 	${VcfFiles} \
 	./${Output}/PnPsResults/StaphPhageOverallContigPressure.tsv \
-	./${Output}/PnPsResults/StaphPhageSnpPatterns.tsv
+	./${Output}/PnPsResults/StaphPhageSnpPatterns.tsv \
+	./${Output}/PnPsResults/StaphPhageSnpPatternsSecond.tsv
 

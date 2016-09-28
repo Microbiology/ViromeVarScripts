@@ -44,7 +44,7 @@ PlotSubstPatterns <- function(SubPatterns, AminoProfile) {
   SubPatterns$Window <- ifelse(SubPatterns$Location %in% "HotspotWindow",
                                "Hotspot",
                                "Adjacent")
-  
+
   # Only look at the hotspots
   SubPatternsCut <- SubPatterns[
     c(which(SubPatterns$Window %in% "Hotspot"))
@@ -60,7 +60,7 @@ PlotSubstPatterns <- function(SubPatterns, AminoProfile) {
                                      "Yes",
                                      "No")
   
-  # Merge amion acid properties into subst pattern scripts - Consensus
+  # Merge amino acid properties into subst pattern scripts - Consensus
   SubPatternsCut <- merge(SubPatternsCut,
                           AminoProfile,
                           by.x="CodonAAConsensus",
@@ -71,6 +71,7 @@ PlotSubstPatterns <- function(SubPatterns, AminoProfile) {
                           AminoProfile,
                           by.x="CodonAAVariable",
                           by.y="V3")
+  
   
   ##################################
   # Get Rel Abund DFs For Plotting #
@@ -87,35 +88,35 @@ PlotSubstPatterns <- function(SubPatterns, AminoProfile) {
   SnpScanUniqueAA <- ddply(SubPatternsCut,
                            c("CodonAAConsensus","CodonAAVariable"),
                            summarize,
-                           count=length(CodonAAConsensus))
+                           count=sum(MutationProbability^-1))
   SnpScanUniqueAA$RelAbund <- 100 * SnpScanUniqueAA$count / sum(SnpScanUniqueAA$count)
   
   # Charged amino acid pattern count
   SnpScanAACharge <- ddply(SubPatternsCut,
                            c("ChargeCons","ChargeVar"),
                            summarize,
-                           count=length(ChargeCons))
+                           count=sum(MutationProbability^-1))
   SnpScanAACharge$RelAbund <- 100 * SnpScanAACharge$count / sum(SnpScanAACharge$count)
   
   # Polarity amino acid pattern count
   SnpScanPolarAA <- ddply(SubPatternsCut,
                           c("V4.x","V4.y"),
                           summarize,
-                          count=length(V4.x))
+                          count=sum(MutationProbability^-1))
   SnpScanPolarAA$RelAbund <- 100 * SnpScanPolarAA$count / sum(SnpScanPolarAA$count)
   
   # Specific polarity amino acid pattern count
   SnpScanSpecPolarAA <- ddply(SubPatternsCut,
                               c("V5.x","V5.y"),
                               summarize,
-                              count=length(V5.x))
+                              count=sum(MutationProbability^-1))
   SnpScanSpecPolarAA$RelAbund <- 100 * SnpScanSpecPolarAA$count / sum(SnpScanSpecPolarAA$count)
   
   # Specific charged amino acid pattern count
   SnpScanUniqueAACharge <- ddply(SubPatternsCut,
                                  c("V6.x","V6.y"),
                                  summarize,
-                                 count=length(V6.x))
+                                 count=sum(MutationProbability^-1))
   SnpScanUniqueAACharge$RelAbund <- 100 * SnpScanUniqueAACharge$count / sum(SnpScanUniqueAACharge$count)
   
   # Calculate the transition and transversion ratio
@@ -152,7 +153,9 @@ PlotSubstPatterns <- function(SubPatterns, AminoProfile) {
     xlab("Consensus SNP") + 
     ylab("Variable SNP") + 
     ggtitle("Patterns of Hotspot Amino Acid Mutations") + 
-    geom_abline(slope=1)  
+    geom_abline(slope=1) +
+    theme(axis.line.x = element_line(color="black", size = 0.5),
+          axis.line.y = element_line(color="black", size = 0.5))
   
   # Plot rel abund as exp to highlight most abudnant
   SnpStatsPlotAA <- ggplot(SnpScanUniqueAA, 
@@ -166,11 +169,13 @@ PlotSubstPatterns <- function(SubPatterns, AminoProfile) {
               size=1) + 
     scale_fill_gradient(low = "white", 
                         high = "black",
-                        limit=c(0,60)) + 
+                        limit=c(0,115)) + 
     xlab("Consensus AA") + 
     ylab("Variable AA") + 
     ggtitle("Patterns of Hotspot Amino Acid Mutations") + 
-    geom_abline(slope=1)
+    geom_abline(slope=1) +
+    theme(axis.line.x = element_line(color="black", size = 0.5),
+          axis.line.y = element_line(color="black", size = 0.5))
    
   SnpChargePlotAA <- ggplot(SnpScanAACharge,
                             aes(x=ChargeCons, 
@@ -183,7 +188,9 @@ PlotSubstPatterns <- function(SubPatterns, AminoProfile) {
                         high = "black") + 
     xlab("Consensus AA") + ylab("Variable AA") + 
     ggtitle("Patterns of Hotspot Amino Acid Mutations") + 
-    geom_abline(slope=1)
+    geom_abline(slope=1) +
+    theme(axis.line.x = element_line(color="black", size = 0.5),
+          axis.line.y = element_line(color="black", size = 0.5))
   
   SnpChargePlotAAPolar1 <- ggplot(SnpScanPolarAA, 
                                   aes(x=V4.x, 
@@ -200,7 +207,9 @@ PlotSubstPatterns <- function(SubPatterns, AminoProfile) {
     xlab("Consensus AA") + 
     ylab("Variable AA") + 
     ggtitle("Patterns of Hotspot Amino Acid Mutations") + 
-    geom_abline(slope=1)
+    geom_abline(slope=1) +
+    theme(axis.line.x = element_line(color="black", size = 0.5),
+          axis.line.y = element_line(color="black", size = 0.5))
 
   SnpChargePlotAAPolar2 <- ggplot(SnpScanSpecPolarAA, 
                                   aes(x=V5.x, 
@@ -216,7 +225,9 @@ PlotSubstPatterns <- function(SubPatterns, AminoProfile) {
     xlab("Consensus AA") + 
     ylab("Variable AA") + 
     ggtitle("Patterns of Hotspot Amino Acid Mutations") + 
-    geom_abline(slope=1)
+    geom_abline(slope=1) +
+    theme(axis.line.x = element_line(color="black", size = 0.5),
+          axis.line.y = element_line(color="black", size = 0.5))
   
   SnpChargePlotAAChargeExp <- ggplot(SnpScanUniqueAACharge, 
                                      aes(x=V6.x, 
@@ -233,7 +244,9 @@ PlotSubstPatterns <- function(SubPatterns, AminoProfile) {
     xlab("Consensus AA") + 
     ylab("Variable AA") + 
     ggtitle("Patterns of Hotspot Amino Acid Mutations") + 
-    geom_abline(slope=1)  
+    geom_abline(slope=1) +
+    theme(axis.line.x = element_line(color="black", size = 0.5),
+          axis.line.y = element_line(color="black", size = 0.5))
   
   ####################
   # Export Plot Data #
@@ -245,7 +258,9 @@ PlotSubstPatterns <- function(SubPatterns, AminoProfile) {
               SnpChargePlotAAPolar2,
               SnpChargePlotAAChargeExp,
               TsTvRatio,
-              SnpScanPolarAA))
+              exp(max(SnpScanUniqueAA$RelAbund)),
+              log10(max(SnpScanUniqueAACharge$RelAbund)),
+              log10(max(SnpScanPolarAA$RelAbund))))
 }
 
 # Run through the subroutine with the files of interest

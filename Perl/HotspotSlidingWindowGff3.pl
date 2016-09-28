@@ -24,7 +24,7 @@ open (OUT, ">$out") || die "Unable to open $out: $!";
 # given the corresponding gene it is found in.
 
 # Set how long the adjacent region should be over the HVL
-my $windowFactor = 5;
+my $windowFactor = 2;
 
 # Set the variables to be used in the script
 my @gffArray;

@@ -67,15 +67,15 @@ BoxplotPressureByVirus <- ggplot(TotalPressure,
   scale_y_log10() + 
   ylab("pNpS Evolutionary Pressure By Gene (sqrt)") + 
   geom_text(aes(1,10,label="All Sig Diff with p<0.01")) + 
-  ggtitle("Differences in Evolutionary Pressure Between Virus Taxa")
+  ggtitle("Differences in Evolutionary Pressure Between Virus Taxa") +
+  theme(axis.line.x = element_line(color="black", size = 0.5),
+        axis.line.y = element_line(color="black", size = 0.5))
 
-# Test for significant differences
-kruskalmc(data=TotalPressure, 
-          resp=PnPs~Category, 
-          probs=0.05)
+# Test for significance
+wilcox.test(TotalPressure$PnPs~TotalPressure$Category)
 
-median <- ddply(TotalPressure, c("Category"), summarize, median=median(PnPs))
-median
+# Get median values
+ddply(TotalPressure, c("Category"), summarize, median=median(PnPs))
 
 # Print out the plots
 BoxplotPressureByVirus

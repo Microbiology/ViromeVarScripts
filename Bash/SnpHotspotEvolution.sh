@@ -66,54 +66,54 @@ GenomeVariability () {
 	export WorkingDirectory=/home/ghanni/Analysis/HumanVirome02
 	export Output='SnpHotspotEvolution'
 
-	# 1 = TaxaName
-	# 2 = Contig Files
-	# 3 = Snp Hotspots
-	# 4 = Contig ORFs
-	# 5 = VCF file
-	# 6 = ORF Fasta File
-	# 7 = Genome Reference for Blast
-	# The SNP hotspots were calculated already using my custom perl scripts, so now I can pull out the hotspots using the list of contig IDs
-	mkdir ./${Output}/GenomicVariability
+	# # 1 = TaxaName
+	# # 2 = Contig Files
+	# # 3 = Snp Hotspots
+	# # 4 = Contig ORFs
+	# # 5 = VCF file
+	# # 6 = ORF Fasta File
+	# # 7 = Genome Reference for Blast
+	# # The SNP hotspots were calculated already using my custom perl scripts, so now I can pull out the hotspots using the list of contig IDs
+	# mkdir ./${Output}/GenomicVariability
 
-	grep '>' ${2} \
-		> ./${Output}/GenomicVariability/${1}ContigIdList.tsv
+	# grep '>' ${2} \
+	# 	> ./${Output}/GenomicVariability/${1}ContigIdList.tsv
 
-	# Format the SNP hot spots
-	sed 's/^/>/' ${3} \
-		> ./${Output}/GenomicVariability/${1}HotSpotFormat.tsv
+	# # Format the SNP hot spots
+	# sed 's/^/>/' ${3} \
+	# 	> ./${Output}/GenomicVariability/${1}HotSpotFormat.tsv
 
-	# Pull out the hotspots that match the contig ID list
-	grep \
-		--file=./${Output}/GenomicVariability/${1}ContigIdList.tsv \
-		./${Output}/GenomicVariability/${1}HotSpotFormat.tsv \
-		> ./${Output}/GenomicVariability/${1}SpecificSNPs.tsv
+	# # Pull out the hotspots that match the contig ID list
+	# grep \
+	# 	--file=./${Output}/GenomicVariability/${1}ContigIdList.tsv \
+	# 	./${Output}/GenomicVariability/${1}HotSpotFormat.tsv \
+	# 	> ./${Output}/GenomicVariability/${1}SpecificSNPs.tsv
 	
-	# Format the contig IDs here
-	sed -i 's/>//' ./${Output}/GenomicVariability/${1}SpecificSNPs.tsv
-	sed -i 's/_//' ./${Output}/GenomicVariability/${1}SpecificSNPs.tsv
+	# # Format the contig IDs here
+	# sed -i 's/>//' ./${Output}/GenomicVariability/${1}SpecificSNPs.tsv
+	# sed -i 's/_//' ./${Output}/GenomicVariability/${1}SpecificSNPs.tsv
 
-	# Pull out the SNPs.
-	awk '$5 > 1 {print $0}' \
-		./${Output}/GenomicVariability/${1}SpecificSNPs.tsv \
-		> ./${Output}/GenomicVariability/${1}SpecificSNPsLength.tsv
+	# # Pull out the SNPs.
+	# awk '$5 > 1 {print $0}' \
+	# 	./${Output}/GenomicVariability/${1}SpecificSNPs.tsv \
+	# 	> ./${Output}/GenomicVariability/${1}SpecificSNPsLength.tsv
 	
-	# Finally add a unique ID to each of the SNPs so that they can be individually identified later
-	awk ' { print $0"\t"FNR } ' \
-		./${Output}/GenomicVariability/${1}SpecificSNPsLength.tsv \
-		> ./${Output}/GenomicVariability/${1}SpecificSNPsLengthNumbered.tsv
+	# # Finally add a unique ID to each of the SNPs so that they can be individually identified later
+	# awk ' { print $0"\t"FNR } ' \
+	# 	./${Output}/GenomicVariability/${1}SpecificSNPsLength.tsv \
+	# 	> ./${Output}/GenomicVariability/${1}SpecificSNPsLengthNumbered.tsv
 	
-	# Evolution
-	# I will be able to use the HPV contig gff3 and SNP hotspot position files to generate gff3 files for SNP
-	# hotspots and the surrounding regions. I will be able to use the resulting gff3 file (with postiions
-	# relative to the HPV contigs) to determine what the evolutionary pressures are at and around the hotspots.
-	# First generate the gff3 files
-	mkdir ./${Output}/EvolutionFiles
+	# # Evolution
+	# # I will be able to use the HPV contig gff3 and SNP hotspot position files to generate gff3 files for SNP
+	# # hotspots and the surrounding regions. I will be able to use the resulting gff3 file (with postiions
+	# # relative to the HPV contigs) to determine what the evolutionary pressures are at and around the hotspots.
+	# # First generate the gff3 files
+	# mkdir ./${Output}/EvolutionFiles
 
-	perl ${PerlPath}HotspotSlidingWindowGff3.pl \
-		${4} \
-		./${Output}/GenomicVariability/${1}SpecificSNPsLengthNumbered.tsv \
-		./${Output}/EvolutionFiles/${1}SnpHotspotWindows.gff3
+	# perl ${PerlPath}HotspotSlidingWindowGff3.pl \
+	# 	${4} \
+	# 	./${Output}/GenomicVariability/${1}SpecificSNPsLengthNumbered.tsv \
+	# 	./${Output}/EvolutionFiles/${1}SnpHotspotWindows.gff3
 	
 	# Use this with the other data to get evolutionary pressure
 	perl ${PerlPath}CalculatePnPsRatio.pl \

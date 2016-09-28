@@ -97,8 +97,6 @@ CatCount <- ddply(CatHotspotSubset,
 wilcoxResult <- wilcox.test(CatHotspotSubset$PnPs~CatHotspotSubset$ID)
 wilcoxResult
 
-median <- ddply(CatHotspotSubset, c("ID"), summarize, median=median(PnPs))
-
 # Plot out the numbers of hotspots
 SnpCountComp <- ggplot(CatHotspotSubset, aes(x=ID, y=PnPs, fill=ID)) +
   theme_classic() +
@@ -113,7 +111,9 @@ SnpCountComp <- ggplot(CatHotspotSubset, aes(x=ID, y=PnPs, fill=ID)) +
            y = 1.75, 
            size = 5, 
            colour = "black") +
-  scale_fill_brewer(palette="Paired")
+  scale_fill_brewer(palette="Paired")+
+  theme(axis.line.x = element_line(color="black", size = 0.5),
+        axis.line.y = element_line(color="black", size = 0.5))
 SnpCountComp
 
 # Save results in PDF

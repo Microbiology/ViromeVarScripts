@@ -91,6 +91,15 @@ my $SnpCoverage = 0;
 my $GeneSequenceInt = 0;
 my $SnpPositionCorrNuc = 0;
 my $skipFlag = 0;
+my $AltVariableFirst = 0;
+my $AltVariableSecond = 0;
+my $AltVariableThird = 0;
+my $AltSnpVarThird = 0;
+my $AltVariableFirstAA = 0;
+my $AltVariableSecondAA = 0;
+my $AltVariableThirdAA = 0;
+my $probcounter = 0;
+my $mutationprobability = 0;
 
 # Set subroutine to create hash sequences.
 # High praise to the monks -> http://www.perlmonks.org/?node_id=904666
@@ -212,7 +221,7 @@ sub CalculatePnPsRatio {
 	# Print out a header for the output file
 	print OUT "ContigID\tGeneID\tSynonymousSNPs\tNonSynonymousSNPs\tPotentialSynonymousMutations\tPotentialNonSynonymousMutations\tPnPs\tPositiveDirection\n";
 	# Also print out the header for the alternative output file
-	print SEQOUT "ContigID\tGeneID\tSnpPosition\tSnpConsensus\tSnpVariable\tCodonAAConsensus\tCodonAAVariable\tPositiveDirection\n";
+	print SEQOUT "ContigID\tGeneID\tSnpPosition\tSnpConsensus\tSnpVariable\tCodonAAConsensus\tCodonAAVariable\tPositiveDirection\tFirstAlternate\tSecondAlternate\tThirdAlternate\tMutationProbability\n";
 	# Get the variables from the subroutine call
 	my ($FastaHash, $gff3Array, $vcfArray, $AminoAcidHash) = @_;
 	foreach my $gff3Line (@$gff3Array) {
@@ -300,6 +309,29 @@ sub CalculatePnPsRatio {
 			# 2 = second position
 			# 1 = first position
 			$SnpCodonPosition = $SnpPositionCorrNuc % 3;
+
+			# Add in the alternate amino acids from other potential mutations
+			if ($SnpConsensus eq 'A') {
+				$FirstAlter = 'G';
+				$SecondAlter = 'C';
+				$ThirdAlter = 'T';
+			} elsif ($SnpConsensus eq 'T') {
+				$FirstAlter = 'G';
+				$SecondAlter = 'C';
+				$ThirdAlter = 'A';
+			} elsif ($SnpConsensus eq 'G') {
+				$FirstAlter = 'T';
+				$SecondAlter = 'C';
+				$ThirdAlter = 'A';
+			}elsif ($SnpConsensus eq 'C') {
+				$FirstAlter = 'G';
+				$SecondAlter = 'T';
+				$ThirdAlter = 'A';
+			} else {
+				print STDERR "This does not look like a nucleotide to me: $SnpConsensus\n";
+				die "WOAH! There are strange symbols in this fasta\n";
+			}
+
 			# Extract the codon containing the SNP
 			if ($SnpCodonPosition == 0) {
 				# Gene is in third codon position
@@ -310,35 +342,69 @@ sub CalculatePnPsRatio {
 				# Cat the first two nucleotides with the third as SNP consensus
 				$SnpCodonConsensus = substr($GeneSequence, $SnpPositionCorrNuc-1-2, 2) . $SnpConsensus;
 				$SnpCodonVariable = substr($GeneSequence, $SnpPositionCorrNuc-1-2, 2) . $SnpVariable;
+				$AltVariableFirst = substr($GeneSequence, $SnpPositionCorrNuc-1-2, 2) . $FirstAlter;
+				$AltVariableSecond = substr($GeneSequence, $SnpPositionCorrNuc-1-2, 2) . $SecondAlter;
+				$AltVariableThird = substr($GeneSequence, $SnpPositionCorrNuc-1-2, 2) . $ThirdAlter;
 			} elsif ($SnpCodonPosition == 2) {
 				# Gene is in second codon position
 				$SnpCodonConsensus = substr($GeneSequence, $SnpPositionCorrNuc-1-1, 1) . $SnpConsensus . substr($GeneSequence, $SnpPositionCorrNuc-1+1, 1);
 				$SnpCodonVariable = substr($GeneSequence, $SnpPositionCorrNuc-1-1, 1) . $SnpVariable . substr($GeneSequence, $SnpPositionCorrNuc-1+1, 1);
+				$AltVariableFirst = substr($GeneSequence, $SnpPositionCorrNuc-1-1, 1) . $FirstAlter . substr($GeneSequence, $SnpPositionCorrNuc-1+1, 1);
+				$AltVariableSecond = substr($GeneSequence, $SnpPositionCorrNuc-1-1, 1) . $SecondAlter . substr($GeneSequence, $SnpPositionCorrNuc-1+1, 1);
+				$AltVariableThird = substr($GeneSequence, $SnpPositionCorrNuc-1-1, 1) . $ThirdAlter . substr($GeneSequence, $SnpPositionCorrNuc-1+1, 1);
 			} elsif ($SnpCodonPosition == 1) {
 				$SnpCodonConsensus = $SnpConsensus . substr($GeneSequence, $SnpPositionCorrNuc-1+1, 2);
 				$SnpCodonVariable = $SnpVariable . substr($GeneSequence, $SnpPositionCorrNuc-1+1, 2);
+				$AltVariableFirst = $FirstAlter . substr($GeneSequence, $SnpPositionCorrNuc-1+1, 2);
+				$AltVariableSecond = $SecondAlter . substr($GeneSequence, $SnpPositionCorrNuc-1+1, 2);
+				$AltVariableThird = $ThirdAlter . substr($GeneSequence, $SnpPositionCorrNuc-1+1, 2);
 			} else {
 				die "ARG! Killed because of error in codon modulo operation: $!";
 			}
+
 			# Reverse compliment the codon if it is on the neg strand
+			print STDERR "Direction is $PositionPositive\n";
+			print STDERR "Consensus codon sequence is $SnpCodonConsensus\n";
 			if ($PositionPositive == 0) {
 				# Get the compliment sequences of the gene
 				$SnpCodonConsensus =~ tr/ACGT/TGCA/;
 				$SnpCodonVariable =~ tr/ACGT/TGCA/;
+				$AltVariableFirst =~ tr/ACGT/TGCA/;
+				$AltVariableSecond =~ tr/ACGT/TGCA/;
+				$AltVariableThird =~ tr/ACGT/TGCA/;
 				# Reverse to finish getting reverse compliment
 				$SnpCodonConsensus = reverse $SnpCodonConsensus;
 				$SnpCodonVariable = reverse $SnpCodonVariable;
+				$AltVariableFirst = reverse $AltVariableFirst;
+				$AltVariableSecond = reverse $AltVariableSecond;
+				$AltVariableThird = reverse $AltVariableThird;
+				print STDERR "Reverse is $SnpCodonConsensus\n";
 			} elsif ($PositionPositive == 2) {
 				die "Error processing ORF directionality: $!";
 			}
+			print STDERR "Reverse is $SnpCodonConsensus\n";
 			$CodonAAConsensus = $AminoAcidHash -> {$SnpCodonConsensus};
+			print STDERR "Resulting consensus AA is $CodonAAConsensus\n";
 			$CodonAAVariable = $AminoAcidHash -> {$SnpCodonVariable};
+			print STDERR "Resulting variable AA is $CodonAAVariable\n";
+			$AltVariableFirstAA = $AminoAcidHash -> {$AltVariableFirst};
+			$AltVariableSecondAA = $AminoAcidHash -> {$AltVariableSecond};
+			$AltVariableThirdAA = $AminoAcidHash -> {$AltVariableThird};
 			# print "Codon consensus is $SnpCodonConsensus for position $SnpPosition.\n";
 			# print "Codon variable is $SnpCodonVariable for position $SnpPosition.\n";
 			# print "AA consensus is $CodonAAConsensus\n";
 			# print "AA variable is $CodonAAVariable\n";
+
+			# Calculate the probability that the variable sequence would have occured by chance
+			$probcounter = 0;
+			++$probcounter if ($CodonAAVariable eq $AltVariableFirstAA);
+			++$probcounter if ($CodonAAVariable eq $AltVariableSecondAA);
+			++$probcounter if ($CodonAAVariable eq $AltVariableThirdAA);
+			$mutationprobability = 0;
+			$mutationprobability = $probcounter / 3;
+
 			# Print out the additional output with the substitution patterns
-			print SEQOUT "$contigID\t$geneID\t$SnpPosition\t$SnpConsensus\t$SnpVariable\t$CodonAAConsensus\t$CodonAAVariable\t$PositionPositive\n";
+			print SEQOUT "$contigID\t$geneID\t$SnpPosition\t$SnpConsensus\t$SnpVariable\t$CodonAAConsensus\t$CodonAAVariable\t$PositionPositive\t$AltVariableFirstAA\t$AltVariableSecondAA\t$AltVariableThirdAA\t$mutationprobability\n";
 			# Print out the VCF line to seperate file for alternate analysis
 			# Add a unigue ID to the end for parsing that can be removed later
 			print VCFOUT "$vcfline\tUID=$geneID\n";
